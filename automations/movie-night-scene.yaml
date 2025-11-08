@@ -1,0 +1,121 @@
+# ================================================
+# Home Assistant - Movie Night Scene
+# ================================================
+# Creates the perfect ambiance for movie watching
+
+
+automation:
+  - alias: "Scene - Movie Night"
+    description: "Activate movie night scene"
+    trigger:
+      # Can be triggered manually or by voice command
+      - platform: event
+        event_type: script_started
+        event_data:
+          entity_id: script.movie_night
+    action:
+      # Dim living room lights gradually
+      - service: light.turn_on
+        target:
+          entity_id: light.living_room
+        data:
+          brightness_pct: 10
+          color_temp: 400  # Warm white
+          transition: 3
+     
+      # Turn off other lights
+      - service: light.turn_off
+        target:
+          entity_id:
+            - light.kitchen
+            - light.dining_room
+        data:
+          transition: 2
+     
+      # Turn on TV
+      - service: media_player.turn_on
+        target:
+          entity_id: media_player.living_room_tv
+     
+      # Set soundbar to movie mode
+      - service: media_player.select_sound_mode
+        target:
+          entity_id: media_player.soundbar
+        data:
+          sound_mode: "Movie"
+     
+      # Close blinds
+      - service: cover.close_cover
+        target:
+          entity_id: cover.living_room_blinds
+     
+      # Adjust temperature
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.main_thermostat
+        data:
+          temperature: 21  # 70°F
+     
+      # Pause other media players
+      - service: media_player.media_pause
+        target:
+          entity_id:
+            - media_player.bedroom_speaker
+            - media_player.kitchen_speaker
+     
+      # Enable Do Not Disturb
+      - service: switch.turn_on
+        target:
+          entity_id: switch.do_not_disturb
+     
+      # Notification
+      - service: notify.mobile_app
+        data:
+          title: "Movie Night"
+          message: "Scene activated. Enjoy your movie! 🎬"
+
+
+script:
+  movie_night:
+    alias: "Movie Night Scene"
+    sequence:
+      - event: script_started
+        event_data:
+          entity_id: script.movie_night
+
+
+  # Restore scene when movie ends
+  movie_night_end:
+    alias: "End Movie Night"
+    sequence:
+      # Return lights to normal
+      - service: light.turn_on
+        target:
+          entity_id: light.living_room
+        data:
+          brightness_pct: 70
+          color_temp: 300
+          transition: 5
+     
+      # Open blinds partially
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.living_room_blinds
+        data:
+          position: 30
+     
+      # Restore thermostat
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.main_thermostat
+        data:
+          temperature: 22
+     
+      # Disable Do Not Disturb
+      - service: switch.turn_off
+        target:
+          entity_id: switch.do_not_disturb
+
+
+
+

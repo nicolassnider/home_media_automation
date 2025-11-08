@@ -1,0 +1,191 @@
+# ================================================
+# Home Assistant - Energy Saving Automation
+# ================================================
+# Optimizes energy consumption throughout the day
+
+
+automation:
+  - alias: "Energy Saver - Night Mode"
+    description: "Reduce energy consumption at night"
+    trigger:
+      - platform: time
+        at: "23:00:00"
+    action:
+      # Check each room for occupancy
+      - service: script.turn_on
+        target:
+          entity_id: script.check_and_turn_off_lights
+     
+      # Turn off idle devices
+      - service: switch.turn_off
+        target:
+          entity_id:
+            - switch.tv_standby
+            - switch.computer_outlet
+        condition:
+          - condition: state
+            entity_id: binary_sensor.device_in_use
+            state: "off"
+            for: "01:00:00"
+     
+      # Set thermostat to night mode
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.main_thermostat
+        data:
+          temperature: 19  # 66°F for sleeping
+     
+      # Turn off outdoor lights (except security)
+      - service: light.turn_off
+        target:
+          entity_id:
+            - light.porch
+            - light.garden
+            - light.driveway
+     
+      # Keep security lights on with reduced brightness
+      - service: light.turn_on
+        target:
+          entity_id: light.security_lights
+        data:
+          brightness_pct: 20
+     
+      # Calculate and log energy savings
+      - service: script.turn_on
+        target:
+          entity_id: script.calculate_energy_savings
+
+
+  - alias: "Energy Saver - Idle TV Detection"
+    description: "Turn off TV if idle for too long"
+    trigger:
+      - platform: state
+        entity_id: media_player.living_room_tv
+        to: "paused"
+        for: "01:00:00"
+    action:
+      # Send notification
+      - service: notify.mobile_app
+        data:
+          title: "Energy Saver"
+          message: "TV has been paused for 1 hour. Turn it off?"
+          data:
+            actions:
+              - action: "TV_OFF"
+                title: "Turn Off"
+              - action: "IGNORE"
+                title: "Keep On"
+     
+      # Auto turn off after 2 hours total
+      - delay: "01:00:00"
+     
+      - condition: state
+        entity_id: media_player.living_room_tv
+        state: "paused"
+     
+      - service: media_player.turn_off
+        target:
+          entity_id: media_player.living_room_tv
+     
+      - service: notify.mobile_app
+        data:
+          message: "TV turned off automatically"
+
+
+  - alias: "Energy Saver - Phantom Load Detection"
+    description: "Alert about devices consuming power in standby"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.power_meter
+        above: 10
+        for: "00:30:00"
+    condition:
+      - condition: time
+        after: "00:00:00"
+        before: "06:00:00"
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "Phantom Load Detected"
+          message: >
+            Devices are consuming {{ states('sensor.power_meter') }}W at night.
+            Check for devices left on.
+
+
+  - alias: "Energy Report - Daily"
+    description: "Send daily energy consumption report"
+    trigger:
+      - platform: time
+        at: "21:00:00"
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "Daily Energy Report"
+          message: >
+            Today's Energy Usage:
+            Total: {{ states('sensor.daily_energy') }} kWh
+            Cost: ${{ states('sensor.daily_cost') }}
+           
+            Comparison to yesterday:
+            {{ states('sensor.energy_change_percent') }}%
+           
+            Top consumers:
+            1. {{ states('sensor.top_consumer_1') }}
+            2. {{ states('sensor.top_consumer_2') }}
+            3. {{ states('sensor.top_consumer_3') }}
+
+
+script:
+  check_and_turn_off_lights:
+    alias: "Check rooms and turn off lights"
+    sequence:
+      # Check living room
+      - condition: state
+        entity_id: binary_sensor.living_room_occupancy
+        state: "off"
+        for: "00:05:00"
+      - service: light.turn_off
+        target:
+          entity_id: light.living_room
+     
+      # Check bedroom
+      - condition: state
+        entity_id: binary_sensor.bedroom_occupancy
+        state: "off"
+        for: "00:05:00"
+      - service: light.turn_off
+        target:
+          entity_id: light.bedroom
+     
+      # Check kitchen
+      - condition: state
+        entity_id: binary_sensor.kitchen_occupancy
+        state: "off"
+        for: "00:05:00"
+      - service: light.turn_off
+        target:
+          entity_id: light.kitchen
+
+
+  calculate_energy_savings:
+    alias: "Calculate nightly energy savings"
+    sequence:
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.night_energy_baseline
+        data:
+          value: "{{ states('sensor.current_power') | float }}"
+     
+      - delay: "08:00:00"  # Check after 8 hours
+     
+      - service: persistent_notification.create
+        data:
+          title: "Energy Savings"
+          message: >
+            Energy saved last night:
+            {{ ((states('input_number.night_energy_baseline') | float -
+                states('sensor.current_power') | float) * 8) | round(2) }} kWh
+
+
+
+

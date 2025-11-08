@@ -1,0 +1,191 @@
+[
+    {
+        "id": "morning_routine_flow",
+        "type": "tab",
+        "label": "Morning Routine",
+        "disabled": false,
+        "info": "Automated morning routine workflow"
+    },
+    {
+        "id": "time_trigger_morning",
+        "type": "inject",
+        "z": "morning_routine_flow",
+        "name": "7:00 AM Weekdays",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "00 07 * * 1-5",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"routine\":\"morning\"}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 80,
+        "wires": [
+            [
+                "check_home_status"
+            ]
+        ]
+    },
+    {
+        "id": "check_home_status",
+        "type": "api-current-state",
+        "z": "morning_routine_flow",
+        "name": "Someone Home?",
+        "server": "home_assistant",
+        "version": 2,
+        "outputs": 2,
+        "halt_if": "on",
+        "halt_if_type": "str",
+        "halt_if_compare": "is",
+        "entity_id": "binary_sensor.someone_home",
+        "state_type": "str",
+        "blockInputOverrides": false,
+        "outputProperties": [],
+        "x": 360,
+        "y": 80,
+        "wires": [
+            [
+                "lights_gradual_on"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "lights_gradual_on",
+        "type": "api-call-service",
+        "z": "morning_routine_flow",
+        "name": "Lights 10%",
+        "server": "home_assistant",
+        "version": 3,
+        "service_domain": "light",
+        "service": "turn_on",
+        "entityId": "light.bedroom",
+        "data": "{\"brightness_pct\":10,\"transition\":1}",
+        "dataType": "json",
+        "mergecontext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 580,
+        "y": 80,
+        "wires": [
+            [
+                "delay_1min"
+            ]
+        ]
+    },
+    {
+        "id": "delay_1min",
+        "type": "delay",
+        "z": "morning_routine_flow",
+        "name": "Wait 1 min",
+        "pauseType": "delay",
+        "timeout": "60",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 770,
+        "y": 80,
+        "wires": [
+            [
+                "lights_50_percent"
+            ]
+        ]
+    },
+    {
+        "id": "lights_50_percent",
+        "type": "api-call-service",
+        "z": "morning_routine_flow",
+        "name": "Lights 50%",
+        "server": "home_assistant",
+        "version": 3,
+        "service_domain": "light",
+        "service": "turn_on",
+        "entityId": "light.bedroom",
+        "data": "{\"brightness_pct\":50,\"transition\":60}",
+        "dataType": "json",
+        "mergecontext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 960,
+        "y": 80,
+        "wires": [
+            [
+                "coffee_maker_on",
+                "thermostat_adjust",
+                "send_weather"
+            ]
+        ]
+    },
+    {
+        "id": "coffee_maker_on",
+        "type": "api-call-service",
+        "z": "morning_routine_flow",
+        "name": "Coffee ON",
+        "server": "home_assistant",
+        "version": 3,
+        "service_domain": "switch",
+        "service": "turn_on",
+        "entityId": "switch.coffee_maker",
+        "data": "",
+        "dataType": "json",
+        "mergecontext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 1170,
+        "y": 40,
+        "wires": [[]]
+    },
+    {
+        "id": "thermostat_adjust",
+        "type": "api-call-service",
+        "z": "morning_routine_flow",
+        "name": "Set Temp 22°C",
+        "server": "home_assistant",
+        "version": 3,
+        "service_domain": "climate",
+        "service": "set_temperature",
+        "entityId": "climate.main_thermostat",
+        "data": "{\"temperature\":22}",
+        "dataType": "json",
+        "mergecontext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 1180,
+        "y": 100,
+        "wires": [[]]
+    },
+    {
+        "id": "send_weather",
+        "type": "api-call-service",
+        "z": "morning_routine_flow",
+        "name": "Weather Notification",
+        "server": "home_assistant",
+        "version": 3,
+        "service_domain": "notify",
+        "service": "mobile_app",
+        "entityId": "",
+        "data": "{\"title\":\"Good Morning!\",\"message\":\"Temperature: {{states('sensor.outdoor_temperature')}}° - Have a great day!\"}",
+        "dataType": "json",
+        "mergecontext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 1200,
+        "y": 160,
+        "wires": [[]]
+    }
+]

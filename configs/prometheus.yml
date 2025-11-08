@@ -1,0 +1,69 @@
+# Prometheus Configuration
+# Metrics collection for Home Media and Automation Center
+
+
+global:
+  scrape_interval: 15s # Scrape targets every 15 seconds
+  evaluation_interval: 15s # Evaluate rules every 15 seconds
+  external_labels:
+    monitor: 'home-media-server'
+
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+
+# Load rules once and periodically evaluate them
+# rule_files:
+#   - "alerts.yml"
+
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          alias: 'prometheus'
+
+
+  # Node Exporter - System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          alias: 'server'
+          instance: 'home-media-server'
+
+
+  # Home Assistant metrics (if exposed)
+  - job_name: 'homeassistant'
+    static_configs:
+      - targets: ['192.168.1.100:8123']
+        labels:
+          alias: 'homeassistant'
+    metrics_path: '/api/prometheus'
+    # bearer_token: 'YOUR_LONG_LIVED_ACCESS_TOKEN'
+
+
+  # Plex metrics (via Tautulli or custom exporter)
+  # - job_name: 'plex'
+  #   static_configs:
+  #     - targets: ['plex-exporter:9594']
+
+
+  # MQTT metrics (via custom exporter)
+  # - job_name: 'mqtt'
+  #   static_configs:
+  #     - targets: ['mqtt-exporter:9234']
+
+
+  # Docker metrics (via cAdvisor)
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']

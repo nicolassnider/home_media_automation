@@ -1,0 +1,140 @@
+# ================================================
+# Home Assistant - Away Mode / Security Automation
+# ================================================
+# Activates security mode when everyone leaves home
+
+
+automation:
+  - alias: "Security Mode - Away"
+    description: "Activate security mode when everyone leaves"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.someone_home
+        from: "on"
+        to: "off"
+        for: "00:05:00"  # Wait 5 minutes
+    action:
+      # Notify that security mode is activating
+      - service: notify.mobile_app
+        data:
+          title: "Security Mode"
+          message: "Activating away mode in 1 minute..."
+     
+      - delay: "00:01:00"
+     
+      # Turn off all lights
+      - service: light.turn_off
+        target:
+          entity_id: all
+     
+      # Set thermostat to eco mode
+      - service: climate.set_preset_mode
+        target:
+          entity_id: climate.main_thermostat
+        data:
+          preset_mode: "eco"
+     
+      # Lock all doors
+      - service: lock.lock
+        target:
+          entity_id:
+            - lock.front_door
+            - lock.back_door
+     
+      # Arm security cameras
+      - service: camera.enable_motion_detection
+        target:
+          entity_id: all
+     
+      # Enable alarm system
+      - service: alarm_control_panel.alarm_arm_away
+        target:
+          entity_id: alarm_control_panel.home
+     
+      # Send final notification
+      - service: notify.mobile_app
+        data:
+          title: "Security Activated"
+          message: "House is secured. All systems armed."
+
+
+  - alias: "Security Alert - Motion While Away"
+    description: "Alert when motion is detected while away"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.motion_sensor
+        to: "on"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.someone_home
+        state: "off"
+      - condition: state
+        entity_id: alarm_control_panel.home
+        state: "armed_away"
+    action:
+      # Take snapshot from camera
+      - service: camera.snapshot
+        target:
+          entity_id: camera.front_door
+        data:
+          filename: "/tmp/motion_{{ now().strftime('%Y%m%d_%H%M%S') }}.jpg"
+     
+      # Send alert with photo
+      - service: notify.mobile_app
+        data:
+          title: "🚨 Motion Detected!"
+          message: "Motion detected at {{ trigger.to_state.attributes.friendly_name }}"
+          data:
+            image: "/tmp/motion_{{ now().strftime('%Y%m%d_%H%M%S') }}.jpg"
+            actions:
+              - action: "SOUND_ALARM"
+                title: "Sound Alarm"
+              - action: "IGNORE"
+                title: "Ignore"
+     
+      # Start recording
+      - service: camera.record
+        target:
+          entity_id: camera.front_door
+        data:
+          duration: 60
+
+
+  - alias: "Disarm Security - Arrival"
+    description: "Disarm security when someone arrives home"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.someone_home
+        from: "off"
+        to: "on"
+    condition:
+      - condition: state
+        entity_id: alarm_control_panel.home
+        state: "armed_away"
+    action:
+      # Disarm alarm
+      - service: alarm_control_panel.alarm_disarm
+        target:
+          entity_id: alarm_control_panel.home
+     
+      # Turn on entry lights
+      - service: light.turn_on
+        target:
+          entity_id:
+            - light.entry
+            - light.hallway
+        data:
+          brightness_pct: 80
+     
+      # Restore thermostat
+      - service: climate.set_preset_mode
+        target:
+          entity_id: climate.main_thermostat
+        data:
+          preset_mode: "home"
+     
+      # Notify
+      - service: notify.mobile_app
+        data:
+          title: "Welcome Home"
+          message: "Security system disarmed"

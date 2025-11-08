@@ -1,0 +1,79 @@
+# ================================================
+# Home Assistant - Morning Routine Automation
+# ================================================
+# This automation runs on weekday mornings to wake up the household
+
+
+automation:
+  - alias: "Morning Routine - Weekdays"
+    description: "Wake up routine for weekdays"
+    trigger:
+      - platform: time
+        at: "07:00:00"
+    condition:
+      - condition: time
+        weekday:
+          - mon
+          - tue
+          - wed
+          - thu
+          - fri
+      - condition: state
+        entity_id: binary_sensor.someone_home
+        state: "on"
+    action:
+      # Gradually turn on bedroom lights
+      - service: light.turn_on
+        target:
+          entity_id: light.bedroom
+        data:
+          brightness_pct: 10
+          transition: 1
+     
+      - delay: "00:01:00"
+     
+      - service: light.turn_on
+        target:
+          entity_id: light.bedroom
+        data:
+          brightness_pct: 50
+          transition: 60  # 1 minute transition
+     
+      # Turn on coffee maker
+      - service: switch.turn_on
+        target:
+          entity_id: switch.coffee_maker
+     
+      # Adjust thermostat
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.main_thermostat
+        data:
+          temperature: 22  # 72°F
+     
+      # Open blinds to 50%
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.bedroom_blinds
+        data:
+          position: 50
+     
+      # Play morning news/music
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.bedroom_speaker
+        data:
+          media_content_id: "https://your-preferred-radio-stream"
+          media_content_type: "music"
+     
+      # Send notification with weather
+      - service: notify.mobile_app
+        data:
+          title: "Good Morning!"
+          message: >
+            Temperature: {{ states('sensor.outdoor_temperature') }}°
+            Weather: {{ states('weather.home') }}
+            Have a great day!
+
+
+
