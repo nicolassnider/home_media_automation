@@ -1,6 +1,5 @@
 # System Architecture Diagram
 
-
 ```mermaid
 graph TB
     subgraph "Physical Layer"

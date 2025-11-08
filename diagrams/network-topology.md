@@ -1,6 +1,5 @@
 # Network Topology Diagram
 
-
 ```mermaid
 graph TB
     subgraph "Internet"
@@ -16,7 +15,7 @@ graph TB
 
     subgraph "Main Network - 192.168.1.0/24"
         SERVER[Home Media Server<br/>Static IP: 192.168.1.100<br/>Ubuntu Server]
-       
+
         subgraph "Client VLAN - 192.168.1.10-50"
             TV1[Smart TV 1<br/>192.168.1.10]
             TV2[Smart TV 2<br/>192.168.1.11]
@@ -57,7 +56,7 @@ graph TB
     FW <--> PC
     FW <--> LAPTOP
     FW <--> PHONE
-   
+
     ROUTER -.->|VLAN 2| HUB
     ROUTER -.->|VLAN 2| THERM
     ROUTER -.->|VLAN 2| CAM1
@@ -95,9 +94,7 @@ graph TB
     style NR_SVC fill:#9c27b0,color:#fff
 ```
 
-
 ## Port Forwarding Configuration
-
 
 ```mermaid
 graph LR
