@@ -1,0 +1,1700 @@
+# Home Media and Automation Center - Implementation Guide
+
+
+This document provides detailed step-by-step instructions for implementing the complete home media and automation center.
+
+
+---
+
+
+## Phase 1: System Preparation (Week 1)
+
+
+### Stage 1.1: Hardware Assessment (Days 1-2)
+
+
+#### Step 1: Physical Inspection
+- [ ] Power off the Core 2 computer completely
+- [ ] Open the computer case
+- [ ] Inspect for dust accumulation
+- [ ] Check for any physical damage or corrosion
+- [ ] Verify all internal cables are connected
+- [ ] Check for bulging or leaking capacitors on motherboard
+
+
+#### Step 2: Component Testing
+- [ ] Test RAM modules individually
+  ```bash
+  # Boot with one stick at a time
+  # Run memtest86+ if available
+  ```
+- [ ] Check hard drive health
+  - Listen for unusual noises (clicking, grinding)
+  - Check SMART status if possible
+- [ ] Verify CPU fan operation
+- [ ] Test all USB ports
+- [ ] Test network port connectivity
+
+
+#### Step 3: Hardware Inventory
+Document current specifications:
+- [ ] CPU model and speed: _________________
+- [ ] Current RAM: ________ GB (DDR2/DDR3)
+- [ ] Storage: ________ GB (HDD/SSD)
+- [ ] Network adapter: 10/100/1000 Mbps
+- [ ] Available expansion slots: _________________
+- [ ] Number of USB ports: _________________
+
+
+#### Step 4: Upgrade Assessment
+Determine what upgrades are needed:
+- [ ] RAM upgrade required? Target: 4GB minimum
+- [ ] SSD upgrade recommended? Target: 240GB-500GB
+- [ ] Additional cooling needed?
+- [ ] Wi-Fi adapter needed?
+
+
+### Stage 1.2: Cleaning and Upgrades (Days 2-3)
+
+
+#### Step 1: Deep Cleaning
+- [ ] Unplug all cables and peripherals
+- [ ] Use compressed air to clean:
+  - CPU heatsink and fan
+  - Case fans
+  - Power supply fan
+  - RAM slots
+  - PCIe slots
+  - All ventilation areas
+- [ ] Clean exterior with appropriate cleaner
+- [ ] Wipe down all surfaces
+
+
+#### Step 2: Thermal Paste Replacement
+- [ ] Remove CPU heatsink
+- [ ] Clean old thermal paste with isopropyl alcohol
+- [ ] Apply new thermal paste (pea-sized drop)
+- [ ] Reinstall heatsink firmly
+
+
+#### Step 3: Install RAM Upgrade (if applicable)
+- [ ] Ground yourself to prevent static discharge
+- [ ] Remove old RAM modules
+- [ ] Install new RAM modules
+  - Ensure they click into place
+  - Install in matching slots for dual-channel
+- [ ] Verify RAM is recognized in BIOS
+
+
+#### Step 4: Install SSD (if applicable)
+- [ ] Connect SSD to SATA port
+- [ ] Secure SSD in drive bay or use adapter
+- [ ] Connect power cable
+- [ ] Verify SSD is detected in BIOS
+
+
+#### Step 5: Final Hardware Check
+- [ ] Reconnect all cables
+- [ ] Power on and enter BIOS
+- [ ] Verify all components are detected
+- [ ] Check temperatures (CPU should idle below 50°C)
+- [ ] Save BIOS settings
+
+
+### Stage 1.3: Operating System Installation (Day 4)
+
+
+#### Step 1: Download Ubuntu Server
+- [ ] Download Ubuntu Server 22.04 LTS from official site
+- [ ] Verify ISO checksum
+  ```bash
+  sha256sum ubuntu-22.04.x-live-server-amd64.iso
+  ```
+
+
+#### Step 2: Create Bootable USB
+On Windows:
+- [ ] Download Rufus
+- [ ] Insert USB drive (8GB minimum)
+- [ ] Open Rufus and select:
+  - Device: Your USB drive
+  - Boot selection: Ubuntu ISO
+  - Partition scheme: MBR
+  - Target system: BIOS or UEFI
+- [ ] Click START and wait for completion
+
+
+#### Step 3: BIOS Configuration
+- [ ] Enter BIOS (usually F2, F10, or DEL during boot)
+- [ ] Set boot order: USB first
+- [ ] Disable Secure Boot (if present)
+- [ ] Enable AHCI mode for SATA
+- [ ] Save and exit
+
+
+#### Step 4: Install Ubuntu Server
+- [ ] Boot from USB drive
+- [ ] Select "Install Ubuntu Server"
+- [ ] Choose language: English
+- [ ] Choose keyboard layout: US (or your preference)
+- [ ] Network configuration:
+  - Configure static IP: 192.168.1.100
+  - Gateway: 192.168.1.1 (your router)
+  - DNS: 8.8.8.8, 8.8.4.4
+- [ ] Configure proxy: (leave blank if none)
+- [ ] Mirror: (use default)
+- [ ] Storage configuration:
+  - Use entire disk
+  - Set up this disk as an LVM group: YES
+- [ ] Confirm destructive action
+- [ ] Profile setup:
+  - Your name: _________________
+  - Server name: media-server
+  - Username: _________________
+  - Password: _________________ (strong password!)
+- [ ] Install OpenSSH server: YES
+- [ ] Import SSH identity: (optional)
+- [ ] Featured server snaps: (none for now)
+- [ ] Wait for installation to complete
+- [ ] Reboot
+
+
+#### Step 5: First Boot and Updates
+- [ ] Remove USB drive
+- [ ] Boot into Ubuntu Server
+- [ ] Log in with your credentials
+- [ ] Update the system:
+  ```bash
+  sudo apt update
+  sudo apt upgrade -y
+  sudo apt dist-upgrade -y
+  sudo reboot
+  ```
+
+
+### Stage 1.4: Initial Configuration (Days 5-7)
+
+
+#### Step 1: SSH Configuration
+- [ ] Test SSH from another computer:
+  ```bash
+  ssh username@192.168.1.100
+  ```
+- [ ] Configure SSH for security:
+  ```bash
+  sudo nano /etc/ssh/sshd_config
+  ```
+  Changes to make:
+  - [ ] PermitRootLogin no
+  - [ ] PasswordAuthentication yes (for now)
+  - [ ] Port 22 (change later for security)
+- [ ] Restart SSH:
+  ```bash
+  sudo systemctl restart ssh
+  ```
+
+
+#### Step 2: Install Essential Tools
+```bash
+# Update package list
+sudo apt update
+
+
+# Install essential packages
+sudo apt install -y \
+  curl \
+  wget \
+  git \
+  vim \
+  nano \
+  htop \
+  tmux \
+  net-tools \
+  build-essential \
+  software-properties-common \
+  apt-transport-https \
+  ca-certificates \
+  gnupg \
+  lsb-release \
+  ufw \
+  fail2ban
+```
+
+
+#### Step 3: Configure Firewall (UFW)
+```bash
+# Set default policies
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+
+# Allow SSH
+sudo ufw allow 22/tcp
+
+
+# Enable firewall
+sudo ufw enable
+
+
+# Check status
+sudo ufw status verbose
+```
+
+
+#### Step 4: Configure Fail2Ban (SSH Protection)
+```bash
+# Install fail2ban (already installed above)
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+
+
+# Create local config
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+
+
+# Edit configuration
+sudo nano /etc/fail2ban/jail.local
+```
+Configure:
+- [ ] bantime = 3600 (1 hour)
+- [ ] maxretry = 3
+- [ ] Save and restart:
+  ```bash
+  sudo systemctl restart fail2ban
+  ```
+
+
+#### Step 5: Set Up Automatic Security Updates
+```bash
+# Install unattended-upgrades
+sudo apt install unattended-upgrades
+
+
+# Configure
+sudo dpkg-reconfigure -plow unattended-upgrades
+
+
+# Verify configuration
+sudo nano /etc/apt/apt.conf.d/50unattended-upgrades
+```
+
+
+#### Step 6: Create Directory Structure
+```bash
+# Create main directories
+sudo mkdir -p /opt/docker
+sudo mkdir -p /opt/scripts
+sudo mkdir -p /media/{movies,tv,music,photos}
+sudo mkdir -p /backup
+
+
+# Set permissions
+sudo chown -R $USER:$USER /opt/docker
+sudo chown -R $USER:$USER /opt/scripts
+sudo chown -R $USER:$USER /media
+sudo chown -R $USER:$USER /backup
+
+
+# Create docker compose directory structure
+mkdir -p /opt/docker/{plex,homeassistant,nodered,mosquitto,nginx,portainer,monitoring}
+```
+
+
+#### Step 7: System Monitoring Setup
+```bash
+# Check system resources
+htop
+
+
+# Check disk space
+df -h
+
+
+# Check memory
+free -h
+
+
+# Check network
+ip addr show
+```
+
+
+---
+
+
+## Phase 2: Media Center Setup (Week 2)
+
+
+### Stage 2.1: Docker Installation (Day 1)
+
+
+#### Step 1: Install Docker Engine
+```bash
+# Remove old versions (if any)
+sudo apt-get remove docker docker-engine docker.io containerd runc
+
+
+# Add Docker's official GPG key
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+
+# Set up stable repository
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+
+# Install Docker Engine
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+
+# Verify installation
+sudo docker --version
+sudo docker compose version
+```
+
+
+#### Step 2: Configure Docker
+```bash
+# Add your user to docker group
+sudo usermod -aG docker $USER
+
+
+# Log out and back in, or run:
+newgrp docker
+
+
+# Test Docker without sudo
+docker run hello-world
+
+
+# Enable Docker to start on boot
+sudo systemctl enable docker
+sudo systemctl enable containerd
+```
+
+
+#### Step 3: Configure Docker Daemon
+```bash
+# Create daemon config
+sudo nano /etc/docker/daemon.json
+```
+Add:
+```json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "default-address-pools": [
+    {
+      "base": "172.17.0.0/16",
+      "size": 24
+    }
+  ]
+}
+```
+```bash
+# Restart Docker
+sudo systemctl restart docker
+```
+
+
+#### Step 4: Open Firewall Ports for Docker Services
+```bash
+# Plex
+sudo ufw allow 32400/tcp comment 'Plex Media Server'
+
+
+# We'll add more as we install services
+```
+
+
+### Stage 2.2: Plex Media Server Installation (Day 2)
+
+
+#### Step 1: Create Plex Directory Structure
+```bash
+# Create config and data directories
+mkdir -p /opt/docker/plex/config
+mkdir -p /opt/docker/plex/transcode
+```
+
+
+#### Step 2: Create Plex Docker Compose File
+```bash
+nano /opt/docker/plex/docker-compose.yml
+```
+Add the following content:
+```yaml
+version: '3.8'
+
+
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+      - PLEX_CLAIM= # Get from https://www.plex.tv/claim/
+    volumes:
+      - /opt/docker/plex/config:/config
+      - /opt/docker/plex/transcode:/transcode
+      - /media/movies:/movies
+      - /media/tv:/tv
+      - /media/music:/music
+      - /media/photos:/photos
+    restart: unless-stopped
+```
+
+
+#### Step 3: Get Plex Claim Token
+- [ ] Visit https://www.plex.tv/claim/ in a web browser
+- [ ] Log in to your Plex account (create one if needed)
+- [ ] Copy the claim token
+- [ ] Paste it in the docker-compose.yml file (PLEX_CLAIM=)
+
+
+#### Step 4: Start Plex
+```bash
+cd /opt/docker/plex
+docker compose up -d
+
+
+# Check logs
+docker compose logs -f
+```
+
+
+#### Step 5: Access Plex Web Interface
+- [ ] Open browser: http://192.168.1.100:32400/web
+- [ ] Complete Plex setup wizard
+- [ ] Sign in with your Plex account
+- [ ] Name your server: "Home Media Server"
+- [ ] Skip adding libraries for now
+
+
+### Stage 2.3: Media Organization (Days 3-4)
+
+
+#### Step 1: Install Samba for File Sharing
+```bash
+# Install Samba
+sudo apt install -y samba samba-common-bin
+
+
+# Backup original config
+sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.backup
+
+
+# Edit Samba config
+sudo nano /etc/samba/smb.conf
+```
+
+
+Add at the end:
+```ini
+[media]
+   comment = Media Files
+   path = /media
+   browseable = yes
+   writable = yes
+   guest ok = no
+   valid users = YOUR_USERNAME
+   create mask = 0755
+   directory mask = 0755
+```
+
+
+```bash
+# Set Samba password
+sudo smbpasswd -a YOUR_USERNAME
+
+
+# Restart Samba
+sudo systemctl restart smbd
+sudo systemctl enable smbd
+
+
+# Allow Samba through firewall
+sudo ufw allow 445/tcp comment 'Samba'
+```
+
+
+#### Step 2: Create Media Directory Structure
+```bash
+# Create subdirectories
+mkdir -p /media/movies
+mkdir -p /media/tv/{shows,anime}
+mkdir -p /media/music/{albums,playlists}
+mkdir -p /media/photos/{2024,2025}
+
+
+# Set permissions
+chmod -R 755 /media
+```
+
+
+#### Step 3: Add Sample Media (for testing)
+- [ ] Connect to Samba share from Windows: \\192.168.1.100\media
+- [ ] Copy some test video files to appropriate folders
+- [ ] Verify files are accessible
+
+
+#### Step 4: Configure Plex Libraries
+- [ ] Open Plex web interface
+- [ ] Click "Add Library"
+- [ ] For Movies:
+  - Type: Movies
+  - Folder: /movies
+  - Agent: Plex Movie
+  - Language: English
+- [ ] For TV Shows:
+  - Type: TV Shows
+  - Folder: /tv
+  - Agent: Plex Series
+  - Language: English
+- [ ] For Music:
+  - Type: Music
+  - Folder: /music
+  - Agent: Plex Music
+- [ ] For Photos:
+  - Type: Photos
+  - Folder: /photos
+- [ ] Wait for Plex to scan and match media
+
+
+### Stage 2.4: Plex Optimization (Day 5)
+
+
+#### Step 1: Configure Transcoding Settings
+- [ ] Settings → Transcoder
+- [ ] Transcoder temporary directory: /transcode
+- [ ] Transcoder quality: Automatic
+- [ ] Background transcoding x264 preset: Fast
+- [ ] Save changes
+
+
+#### Step 2: Configure Remote Access
+- [ ] Settings → Remote Access
+- [ ] Enable Remote Access
+- [ ] Note: May require port forwarding on router (configure later)
+
+
+#### Step 3: Configure Network Settings
+- [ ] Settings → Network
+- [ ] Secure connections: Preferred
+- [ ] Enable local network discovery: Yes
+- [ ] Treat WAN IP as LAN bandwidth: Yes (if applicable)
+
+
+#### Step 4: Test Media Playback
+- [ ] Play a movie on web interface
+- [ ] Check transcoding (if needed)
+- [ ] Verify playback quality
+- [ ] Test from mobile app
+- [ ] Test from TV app
+
+
+---
+
+
+## Phase 3: Home Automation Setup (Weeks 3-4)
+
+
+### Stage 3.1: MQTT Broker Installation (Day 1)
+
+
+#### Step 1: Create Mosquitto Directories
+```bash
+mkdir -p /opt/docker/mosquitto/{config,data,log}
+```
+
+
+#### Step 2: Create Mosquitto Configuration
+```bash
+nano /opt/docker/mosquitto/config/mosquitto.conf
+```
+Add:
+```
+listener 1883
+persistence true
+persistence_location /mosquitto/data/
+log_dest file /mosquitto/log/mosquitto.log
+log_dest stdout
+allow_anonymous false
+password_file /mosquitto/config/passwd
+```
+
+
+#### Step 3: Create Docker Compose for Mosquitto
+```bash
+nano /opt/docker/mosquitto/docker-compose.yml
+```
+```yaml
+version: '3.8'
+
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - /opt/docker/mosquitto/config:/mosquitto/config
+      - /opt/docker/mosquitto/data:/mosquitto/data
+      - /opt/docker/mosquitto/log:/mosquitto/log
+    restart: unless-stopped
+```
+
+
+#### Step 4: Create MQTT User
+```bash
+# Start Mosquitto temporarily
+cd /opt/docker/mosquitto
+docker compose up -d
+
+
+# Create password file
+docker exec -it mosquitto mosquitto_passwd -c /mosquitto/config/passwd admin
+
+
+# Enter password when prompted
+
+
+# Restart container
+docker compose restart
+
+
+# Allow MQTT through firewall
+sudo ufw allow 1883/tcp comment 'MQTT Broker'
+```
+
+
+#### Step 5: Test MQTT
+```bash
+# Install MQTT client tools
+sudo apt install -y mosquitto-clients
+
+
+# Subscribe to test topic (in one terminal)
+mosquitto_sub -h 192.168.1.100 -t "test/topic" -u admin -P YOUR_PASSWORD
+
+
+# Publish to test topic (in another terminal)
+mosquitto_pub -h 192.168.1.100 -t "test/topic" -m "Hello MQTT!" -u admin -P YOUR_PASSWORD
+```
+
+
+### Stage 3.2: Home Assistant Installation (Days 2-3)
+
+
+#### Step 1: Create Home Assistant Directory
+```bash
+mkdir -p /opt/docker/homeassistant/config
+```
+
+
+#### Step 2: Create Home Assistant Docker Compose
+```bash
+nano /opt/docker/homeassistant/docker-compose.yml
+```
+```yaml
+version: '3.8'
+
+
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    network_mode: host
+    environment:
+      - TZ=America/Mexico_City
+    volumes:
+      - /opt/docker/homeassistant/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    privileged: true
+```
+
+
+#### Step 3: Start Home Assistant
+```bash
+cd /opt/docker/homeassistant
+docker compose up -d
+
+
+# Wait 2-3 minutes for initialization
+docker compose logs -f
+
+
+# Allow Home Assistant through firewall
+sudo ufw allow 8123/tcp comment 'Home Assistant'
+```
+
+
+#### Step 4: Initial Home Assistant Setup
+- [ ] Open browser: http://192.168.1.100:8123
+- [ ] Create owner account:
+  - Name: _________________
+  - Username: _________________
+  - Password: _________________
+- [ ] Set up home location (Mexico)
+- [ ] Set time zone: America/Mexico_City
+- [ ] Skip device discovery for now
+- [ ] Finish setup
+
+
+#### Step 5: Configure MQTT Integration
+- [ ] In Home Assistant, go to Settings → Devices & Services
+- [ ] Click "Add Integration"
+- [ ] Search for "MQTT"
+- [ ] Configure:
+  - Broker: 192.168.1.100
+  - Port: 1883
+  - Username: admin
+  - Password: (your MQTT password)
+- [ ] Submit
+
+
+### Stage 3.3: Node-RED Installation (Day 4)
+
+
+#### Step 1: Create Node-RED Directory
+```bash
+mkdir -p /opt/docker/nodered/data
+```
+
+
+#### Step 2: Create Node-RED Docker Compose
+```bash
+nano /opt/docker/nodered/docker-compose.yml
+```
+```yaml
+version: '3.8'
+
+
+services:
+  nodered:
+    image: nodered/node-red:latest
+    container_name: nodered
+    environment:
+      - TZ=America/Mexico_City
+    ports:
+      - "1880:1880"
+    volumes:
+      - /opt/docker/nodered/data:/data
+    restart: unless-stopped
+```
+
+
+#### Step 3: Start Node-RED
+```bash
+cd /opt/docker/nodered
+docker compose up -d
+
+
+# Wait for startup
+docker compose logs -f
+
+
+# Allow Node-RED through firewall
+sudo ufw allow 1880/tcp comment 'Node-RED'
+```
+
+
+#### Step 4: Access Node-RED
+- [ ] Open browser: http://192.168.1.100:1880
+- [ ] Verify Node-RED interface loads
+
+
+#### Step 5: Secure Node-RED
+```bash
+# Generate password hash
+docker exec -it nodered node-red admin hash-pw
+# Enter your desired password and copy the hash
+
+
+# Edit settings
+nano /opt/docker/nodered/data/settings.js
+```
+Find and uncomment/modify:
+```javascript
+adminAuth: {
+    type: "credentials",
+    users: [{
+        username: "admin",
+        password: "YOUR_HASH_HERE",
+        permissions: "*"
+    }]
+}
+```
+```bash
+# Restart Node-RED
+cd /opt/docker/nodered
+docker compose restart
+```
+
+
+#### Step 6: Install Additional Node-RED Nodes
+- [ ] Access Node-RED web interface
+- [ ] Menu → Manage palette → Install
+- [ ] Install these nodes:
+  - node-red-contrib-home-assistant-websocket
+  - node-red-dashboard
+  - node-red-node-ui-table
+  - node-red-contrib-timecheck
+
+
+### Stage 3.4: Device Integration (Days 5-7)
+
+
+#### Step 1: Prepare for Device Discovery
+- [ ] Ensure all smart devices are powered on
+- [ ] Connect devices to same network as server
+- [ ] Have device credentials ready
+
+
+#### Step 2: Add Philips Hue (if applicable)
+In Home Assistant:
+- [ ] Settings → Devices & Services → Add Integration
+- [ ] Search "Philips Hue"
+- [ ] Press button on Hue bridge when prompted
+- [ ] Select devices to add
+- [ ] Assign to rooms/areas
+
+
+#### Step 3: Add Smart Thermostats
+- [ ] Settings → Devices & Services → Add Integration
+- [ ] Search for your thermostat brand (Nest, Ecobee, etc.)
+- [ ] Follow authentication steps
+- [ ] Configure temperature units
+
+
+#### Step 4: Add Security Cameras
+- [ ] Settings → Devices & Services → Add Integration
+- [ ] Search for camera brand or use Generic Camera
+- [ ] Enter camera stream URL (usually RTSP)
+- [ ] Configure recording settings
+
+
+#### Step 5: Add Other Devices
+Document each device:
+- [ ] Device name: _________________
+  - Type: _________________
+  - Integration: _________________
+  - Configuration: _________________
+
+
+### Stage 3.5: Automation Development (Days 8-12)
+
+
+#### Step 1: Create Morning Routine
+In Home Assistant:
+- [ ] Settings → Automations & Scenes → Create Automation
+- [ ] Name: "Morning Routine"
+- [ ] Trigger: Time - 7:00 AM (weekdays only)
+- [ ] Condition: Someone is home
+- [ ] Actions:
+  - Lights: Gradually brighten to 70%
+  - Smart plug: Turn on coffee maker
+  - Thermostat: Set to 72°F
+  - Notification: Send weather forecast
+
+
+#### Step 2: Create Evening Routine
+- [ ] Name: "Evening Wind Down"
+- [ ] Trigger: Sunset
+- [ ] Actions:
+  - Lights: Set to warm white, 50%
+  - Lock doors
+  - Arm security system
+  - Lower thermostat
+
+
+#### Step 3: Create Security Mode
+- [ ] Name: "Away Mode"
+- [ ] Trigger: Last person leaves home
+- [ ] Delay: 5 minutes
+- [ ] Actions:
+  - Turn off all lights
+  - Set thermostat to eco
+  - Arm cameras
+  - Lock all doors
+  - Send notification
+
+
+#### Step 4: Create Energy Saving Automation
+- [ ] Name: "Energy Saver - Night"
+- [ ] Trigger: 11:00 PM
+- [ ] Actions:
+  - Turn off unused devices
+  - Reduce heating/cooling
+  - Turn off outdoor lights (except security)
+
+
+#### Step 5: Test All Automations
+- [ ] Manually trigger each automation
+- [ ] Verify actions complete correctly
+- [ ] Adjust timing and conditions as needed
+- [ ] Document any issues
+
+
+### Stage 3.6: Dashboard Creation (Days 13-14)
+
+
+#### Step 1: Create Home Assistant Dashboard
+- [ ] Overview → Edit Dashboard
+- [ ] Add cards:
+  - Weather card
+  - Thermostat control
+  - Light controls
+  - Security camera feeds
+  - Energy monitoring
+  - Media player controls
+
+
+#### Step 2: Create Mobile Dashboard
+- [ ] Create new dashboard: "Mobile"
+- [ ] Optimize for phone screen
+- [ ] Add most-used controls
+- [ ] Test on mobile app
+
+
+#### Step 3: Create Node-RED Dashboard
+- [ ] In Node-RED, add UI nodes
+- [ ] Create tabs:
+  - Home
+  - Lights
+  - Climate
+  - Security
+  - Energy
+- [ ] Add gauges, switches, and charts
+- [ ] Deploy and test
+
+
+---
+
+
+## Phase 4: Testing and Optimization (Week 5)
+
+
+### Stage 4.1: Performance Testing (Days 1-2)
+
+
+#### Step 1: Monitor System Resources
+```bash
+# Real-time monitoring
+htop
+
+
+# Disk usage
+df -h
+
+
+# Memory usage
+free -h
+
+
+# Docker stats
+docker stats
+
+
+# Check for 5 minutes and document:
+```
+- [ ] CPU idle: _______%
+- [ ] CPU under load: _______%
+- [ ] RAM usage: _______GB / 4GB
+- [ ] Disk I/O: _______
+
+
+#### Step 2: Test Media Streaming
+- [ ] Stream 1080p video locally
+- [ ] Stream 1080p video remotely (if configured)
+- [ ] Test transcoding with different formats
+- [ ] Measure buffering/loading times
+- [ ] Document results:
+  - Local playback: _______ (smooth/choppy)
+  - Remote playback: _______
+  - Transcoding performance: _______
+
+
+#### Step 3: Test Automation Response Times
+- [ ] Trigger light automation - Response time: _______
+- [ ] Trigger thermostat automation - Response time: _______
+- [ ] Test motion sensor automation - Response time: _______
+- [ ] Document any delays or issues
+
+
+#### Step 4: Network Performance
+```bash
+# Install speedtest
+sudo apt install speedtest-cli
+
+
+# Test speed
+speedtest-cli
+
+
+# Test local network
+iperf3 -c ANOTHER_DEVICE_IP
+```
+- [ ] Download speed: _______
+- [ ] Upload speed: _______
+- [ ] Local network speed: _______
+
+
+### Stage 4.2: Security Hardening (Days 3-4)
+
+
+#### Step 1: Change SSH Port (Optional)
+```bash
+sudo nano /etc/ssh/sshd_config
+# Change Port 22 to Port 2222 (or other)
+
+
+sudo systemctl restart ssh
+
+
+# Update firewall
+sudo ufw delete allow 22/tcp
+sudo ufw allow 2222/tcp
+```
+
+
+#### Step 2: Set Up SSH Keys
+On your client computer:
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+ssh-copy-id username@192.168.1.100
+```
+On server:
+```bash
+# Disable password authentication
+sudo nano /etc/ssh/sshd_config
+# Set: PasswordAuthentication no
+
+
+sudo systemctl restart ssh
+```
+
+
+#### Step 3: Install and Configure Let's Encrypt SSL
+```bash
+# Install certbot
+sudo apt install -y certbot
+
+
+# Get certificate (requires domain name)
+sudo certbot certonly --standalone -d yourdomain.com
+
+
+# Set up auto-renewal
+sudo systemctl enable certbot.timer
+```
+
+
+#### Step 4: Configure Nginx Reverse Proxy
+```bash
+mkdir -p /opt/docker/nginx/{conf,ssl,logs}
+nano /opt/docker/nginx/docker-compose.yml
+```
+```yaml
+version: '3.8'
+
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /opt/docker/nginx/conf:/etc/nginx/conf.d
+      - /opt/docker/nginx/ssl:/etc/nginx/ssl
+      - /opt/docker/nginx/logs:/var/log/nginx
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    restart: unless-stopped
+    depends_on:
+      - homeassistant
+```
+
+
+Create nginx config:
+```bash
+nano /opt/docker/nginx/conf/default.conf
+```
+```nginx
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name yourdomain.com;
+    return 301 https://$server_name$request_uri;
+}
+
+
+# HTTPS Server
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com;
+
+
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+
+
+    # Home Assistant
+    location /home/ {
+        proxy_pass http://192.168.1.100:8123/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+
+    # Plex
+    location /plex/ {
+        proxy_pass http://192.168.1.100:32400/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+
+```bash
+# Start nginx
+cd /opt/docker/nginx
+docker compose up -d
+
+
+# Allow through firewall
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+```
+
+
+#### Step 5: Regular Security Audit Checklist
+- [ ] Review firewall rules: `sudo ufw status numbered`
+- [ ] Check for failed login attempts: `sudo journalctl -u ssh -n 100`
+- [ ] Review fail2ban logs: `sudo fail2ban-client status sshd`
+- [ ] Update all packages: `sudo apt update && sudo apt upgrade`
+- [ ] Check Docker image updates: `docker images`
+- [ ] Review user accounts: `cat /etc/passwd`
+- [ ] Check for unauthorized processes: `ps aux`
+
+
+### Stage 4.3: Documentation (Days 5-6)
+
+
+#### Step 1: Create User Guide
+Create file: `/opt/docs/user-guide.md`
+- [ ] How to access Plex
+- [ ] How to add media files
+- [ ] How to use Home Assistant app
+- [ ] Common automation triggers
+- [ ] Troubleshooting common issues
+
+
+#### Step 2: Document Network Configuration
+Create file: `/opt/docs/network-config.md`
+- [ ] IP addresses of all services
+- [ ] Port mappings
+- [ ] Firewall rules
+- [ ] VLAN configuration
+- [ ] Dynamic DNS setup (if applicable)
+
+
+#### Step 3: Document Passwords and Credentials
+Create encrypted file: `/opt/docs/credentials.txt.gpg`
+```bash
+# Create credentials file
+nano /opt/docs/credentials.txt
+# Add all passwords, API keys, etc.
+
+
+# Encrypt with GPG
+gpg -c /opt/docs/credentials.txt
+
+
+# Delete unencrypted version
+shred -u /opt/docs/credentials.txt
+```
+
+
+#### Step 4: Create Backup Restoration Guide
+Create file: `/opt/docs/disaster-recovery.md`
+- [ ] How to restore from backup
+- [ ] Steps to rebuild system
+- [ ] Important file locations
+- [ ] Docker compose files locations
+
+
+---
+
+
+## Phase 5: Deployment and Maintenance (Week 6+)
+
+
+### Stage 5.1: Physical Installation (Day 1)
+
+
+#### Step 1: Prepare Physical Location
+- [ ] Choose well-ventilated area
+- [ ] Ensure adequate cooling
+- [ ] Verify power outlet is grounded
+- [ ] Keep away from heat sources
+- [ ] Ensure easy cable access
+
+
+#### Step 2: Connect UPS (Uninterruptible Power Supply)
+- [ ] Plug UPS into wall outlet
+- [ ] Plug server into UPS
+- [ ] Plug router/modem into UPS
+- [ ] Test UPS battery backup
+- [ ] Configure UPS monitoring (if supported)
+
+
+#### Step 3: Cable Management
+- [ ] Connect Ethernet cable (Cat6 recommended)
+- [ ] Secure all cables
+- [ ] Label cables
+- [ ] Test network connectivity
+- [ ] Verify speeds
+
+
+#### Step 4: Final Hardware Check
+- [ ] Verify server boots correctly
+- [ ] Check all services start automatically
+- [ ] Test from client devices
+- [ ] Monitor temperatures for 24 hours
+
+
+### Stage 5.2: Monitoring Setup (Days 2-3)
+
+
+#### Step 1: Install Portainer
+```bash
+mkdir -p /opt/docker/portainer/data
+nano /opt/docker/portainer/docker-compose.yml
+```
+```yaml
+version: '3.8'
+
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /opt/docker/portainer/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+```
+```bash
+cd /opt/docker/portainer
+docker compose up -d
+
+
+sudo ufw allow 9000/tcp comment 'Portainer'
+```
+
+
+Access: http://192.168.1.100:9000
+
+
+#### Step 2: Set Up Prometheus & Grafana
+```bash
+mkdir -p /opt/docker/monitoring/{prometheus,grafana}
+nano /opt/docker/monitoring/docker-compose.yml
+```
+```yaml
+version: '3.8'
+
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - /opt/docker/monitoring/prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    restart: unless-stopped
+
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+
+volumes:
+  prometheus-data:
+  grafana-data:
+```
+
+
+```bash
+cd /opt/docker/monitoring
+docker compose up -d
+
+
+sudo ufw allow 3000/tcp comment 'Grafana'
+sudo ufw allow 9090/tcp comment 'Prometheus'
+```
+
+
+#### Step 3: Configure System Monitoring
+Create prometheus config:
+```bash
+nano /opt/docker/monitoring/prometheus/prometheus.yml
+```
+```yaml
+global:
+  scrape_interval: 15s
+
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['192.168.1.100:9100']
+```
+
+
+#### Step 4: Set Up Alert System
+In Home Assistant:
+- [ ] Settings → Automations
+- [ ] Create "System Alert" automation
+- [ ] Trigger: Template (high CPU, low disk, etc.)
+- [ ] Action: Send notification to phone
+
+
+### Stage 5.3: Backup Strategy (Day 4)
+
+
+#### Step 1: Create Backup Script
+```bash
+nano /opt/scripts/backup.sh
+```
+```bash
+#!/bin/bash
+# Home Media Server Backup Script
+
+
+BACKUP_DIR="/backup"
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_NAME="server-backup-$DATE"
+
+
+echo "Starting backup at $(date)"
+
+
+# Create backup directory
+mkdir -p "$BACKUP_DIR/$BACKUP_NAME"
+
+
+# Backup Docker configs
+echo "Backing up Docker configurations..."
+cp -r /opt/docker "$BACKUP_DIR/$BACKUP_NAME/"
+
+
+# Backup Home Assistant config
+echo "Backing up Home Assistant..."
+cp -r /opt/docker/homeassistant/config "$BACKUP_DIR/$BACKUP_NAME/homeassistant-config"
+
+
+# Backup scripts
+echo "Backing up scripts..."
+cp -r /opt/scripts "$BACKUP_DIR/$BACKUP_NAME/"
+
+
+# Create archive
+echo "Creating archive..."
+cd "$BACKUP_DIR"
+tar -czf "$BACKUP_NAME.tar.gz" "$BACKUP_NAME"
+rm -rf "$BACKUP_NAME"
+
+
+# Keep only last 7 backups
+echo "Cleaning old backups..."
+ls -t $BACKUP_DIR/*.tar.gz | tail -n +8 | xargs -r rm
+
+
+echo "Backup completed at $(date)"
+echo "Backup saved to: $BACKUP_DIR/$BACKUP_NAME.tar.gz"
+```
+
+
+```bash
+chmod +x /opt/scripts/backup.sh
+```
+
+
+#### Step 2: Schedule Automated Backups
+```bash
+# Edit crontab
+crontab -e
+
+
+# Add daily backup at 2 AM
+0 2 * * * /opt/scripts/backup.sh >> /var/log/backup.log 2>&1
+
+
+# Add weekly backup to external drive (if connected)
+0 3 * * 0 cp /backup/*.tar.gz /mnt/external-backup/
+```
+
+
+#### Step 3: Test Backup and Restore
+```bash
+# Run backup manually
+/opt/scripts/backup.sh
+
+
+# Test restore
+cd /tmp
+tar -xzf /backup/server-backup-*.tar.gz
+
+
+# Verify files
+ls -la server-backup-*
+```
+
+
+#### Step 4: Document Backup Procedures
+Create: `/opt/docs/backup-procedures.md`
+- [ ] Backup schedule
+- [ ] What is backed up
+- [ ] Restore procedure
+- [ ] External backup procedure
+
+
+### Stage 5.4: Maintenance Schedule (Ongoing)
+
+
+#### Daily Tasks (Automated)
+- [ ] Automatic security updates
+- [ ] Log rotation
+- [ ] Backup execution
+- [ ] Service health checks
+
+
+#### Weekly Tasks (Manual - 30 minutes)
+- [ ] Check system logs: `sudo journalctl -p err -n 50`
+- [ ] Review Docker container status: `docker ps -a`
+- [ ] Check disk space: `df -h`
+- [ ] Review Home Assistant logs
+- [ ] Test automations
+- [ ] Check backup completion
+
+
+#### Monthly Tasks (Manual - 1-2 hours)
+- [ ] Full system update:
+  ```bash
+  sudo apt update
+  sudo apt upgrade -y
+  sudo apt autoremove -y
+  ```
+- [ ] Update Docker images:
+  ```bash
+  docker compose pull
+  docker compose up -d
+  docker image prune -a
+  ```
+- [ ] Review and optimize automations
+- [ ] Clean media library (remove watched/old content)
+- [ ] Check UPS battery health
+- [ ] Review user access and permissions
+- [ ] Test disaster recovery procedure
+- [ ] Verify off-site backup
+
+
+#### Quarterly Tasks (Manual - 2-3 hours)
+- [ ] Security audit
+- [ ] Performance optimization
+- [ ] Update documentation
+- [ ] Review and update automation rules
+- [ ] Hardware inspection (dust cleaning)
+- [ ] Test all integrations
+- [ ] Review energy consumption
+
+
+#### Annual Tasks (Manual - Full day)
+- [ ] Complete system backup
+- [ ] Hardware upgrade assessment
+- [ ] Security certificate renewal
+- [ ] Full disaster recovery test
+- [ ] Documentation review and update
+- [ ] Performance benchmarking
+- [ ] Plan for next year improvements
+
+
+---
+
+
+## Troubleshooting Guide
+
+
+### Docker Issues
+
+
+**Container won't start:**
+```bash
+# Check logs
+docker compose logs container_name
+
+
+# Restart container
+docker compose restart container_name
+
+
+# Rebuild container
+docker compose down
+docker compose up -d
+```
+
+
+**Out of disk space:**
+```bash
+# Clean up Docker
+docker system prune -a
+docker volume prune
+```
+
+
+### Network Issues
+
+
+**Can't access services:**
+```bash
+# Check if service is running
+docker ps
+
+
+# Check firewall
+sudo ufw status
+
+
+# Check port listening
+sudo netstat -tlnp | grep PORT_NUMBER
+```
+
+
+### Performance Issues
+
+
+**High CPU usage:**
+```bash
+# Check processes
+htop
+
+
+# Check Docker stats
+docker stats
+
+
+# Reduce Plex transcoding quality
+```
+
+
+**High memory usage:**
+```bash
+# Check memory
+free -h
+
+
+# Restart memory-hungry container
+docker compose restart container_name
+```
+
+
+---
+
+
+## Completion Checklist
+
+
+### Phase 1 Complete
+- [ ] Hardware cleaned and upgraded
+- [ ] Ubuntu Server installed
+- [ ] SSH configured and working
+- [ ] Firewall configured
+- [ ] Essential tools installed
+
+
+### Phase 2 Complete
+- [ ] Docker installed and configured
+- [ ] Plex running and accessible
+- [ ] Media libraries configured
+- [ ] Samba sharing working
+- [ ] Media streaming tested
+
+
+### Phase 3 Complete
+- [ ] MQTT broker running
+- [ ] Home Assistant configured
+- [ ] Node-RED installed
+- [ ] Devices integrated
+- [ ] Automations created and tested
+- [ ] Dashboards created
+
+
+### Phase 4 Complete
+- [ ] Performance tested and documented
+- [ ] Security hardened
+- [ ] SSL certificates configured
+- [ ] Nginx reverse proxy working
+- [ ] Documentation complete
+
+
+### Phase 5 Complete
+- [ ] Server physically installed
+- [ ] Monitoring configured
+- [ ] Backups automated
+- [ ] Maintenance schedule established
+- [ ] System fully operational
+
+
+---
+
+
+**Project Status:** Ready for Implementation
+**Estimated Total Time:** 5-6 weeks
+**Next Step:** Begin Phase 1, Stage 1.1
+
+
+---
+
+
+*Last Updated: November 08, 2025*
