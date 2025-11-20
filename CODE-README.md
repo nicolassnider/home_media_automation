@@ -1,10 +1,16 @@
 # Home Media and Automation Center - Code Repository
 
 
+
+
 This repository contains all the code, configurations, and automation scripts for the home media and automation center project.
 
 
+
+
 ## 📁 Repository Structure
+
+
 
 
 ```
@@ -46,13 +52,21 @@ home_media_automation/
 └── LICENSE                         # MIT License
 
 
+
+
 ```
+
+
 
 
 ## 🚀 Quick Start
 
 
+
+
 ### Prerequisites
+
+
 
 
 - Ubuntu Server 22.04 LTS (or Debian 12)
@@ -62,7 +76,11 @@ home_media_automation/
 - Internet connection
 
 
+
+
 ### Installation Steps
+
+
 
 
 1. **Clone this repository** (or copy files to your server):
@@ -72,10 +90,14 @@ home_media_automation/
    ```
 
 
+
+
 2. **Make scripts executable**:
    ```bash
    chmod +x scripts/*.sh
    ```
+
+
 
 
 3. **Run system preparation**:
@@ -84,13 +106,19 @@ home_media_automation/
    ```
 
 
+
+
 4. **Install Docker**:
    ```bash
    sudo ./scripts/02-install-docker.sh
    ```
 
 
+
+
 5. **Log out and back in** (to apply Docker group membership)
+
+
 
 
 6. **Set up services**:
@@ -99,18 +127,26 @@ home_media_automation/
    ```
 
 
+
+
 7. **Access your services**:
    - Plex: `http://YOUR_IP:32400/web`
    - Home Assistant: `http://YOUR_IP:8123`
    - Node-RED: `http://YOUR_IP:1880`
-   - Portainer: `http://YOUR_IP:9000`
+   - Portainer: `http://YOUR_IP:9010`
    - Grafana: `http://YOUR_IP:3000`
+
+
 
 
 ## 📦 What's Included
 
 
+
+
 ### Docker Services
+
+
 
 
 | Service | Purpose | Port |
@@ -126,10 +162,16 @@ home_media_automation/
 | **Node Exporter** | System metrics | 9100 |
 
 
+
+
 ### Automation Examples
 
 
+
+
 All automation examples are in the `automations/` folder:
+
+
 
 
 - **Morning Routine** - Gradual wake-up with lights, coffee maker, thermostat
@@ -138,7 +180,11 @@ All automation examples are in the `automations/` folder:
 - **Energy Saving** - Nighttime optimization and daily reports
 
 
+
+
 ### Utility Scripts
+
+
 
 
 - **backup.sh** - Automated backup of all configurations
@@ -146,13 +192,21 @@ All automation examples are in the `automations/` folder:
 - **System scripts** - Automated installation and setup
 
 
+
+
 ## 🔧 Configuration
+
+
 
 
 ### Environment Variables
 
 
+
+
 Copy `.env.example` to `.env` and configure:
+
+
 
 
 ```bash
@@ -162,6 +216,8 @@ nano .env
 ```
 
 
+
+
 Key variables to set:
 - `PLEX_CLAIM_TOKEN` - Get from https://www.plex.tv/claim/
 - `GRAFANA_ADMIN_PASSWORD` - Change from default
@@ -169,10 +225,16 @@ Key variables to set:
 - `SERVER_IP` - Your server's static IP
 
 
+
+
 ### MQTT Authentication
 
 
+
+
 MQTT credentials are set during `03-setup-services.sh`. To change:
+
+
 
 
 ```bash
@@ -181,10 +243,16 @@ docker restart mosquitto
 ```
 
 
+
+
 ### SSL Certificates
 
 
+
+
 For production use with domain name:
+
+
 
 
 ```bash
@@ -192,8 +260,12 @@ For production use with domain name:
 sudo apt install certbot
 
 
+
+
 # Get certificate
 sudo certbot certonly --standalone -d yourdomain.com
+
+
 
 
 # Update nginx config to use certificates
@@ -201,13 +273,21 @@ sudo nano /opt/docker/nginx/conf/default.conf
 ```
 
 
+
+
 ## 📊 Monitoring
+
+
 
 
 ### System Monitor
 
 
+
+
 Run the monitoring script for a quick overview:
+
+
 
 
 ```bash
@@ -215,7 +295,11 @@ Run the monitoring script for a quick overview:
 ```
 
 
+
+
 For continuous monitoring:
+
+
 
 
 ```bash
@@ -223,7 +307,11 @@ watch -n 5 ./scripts/monitor.sh
 ```
 
 
+
+
 ### Grafana Dashboards
+
+
 
 
 Access Grafana at `http://YOUR_IP:3000`:
@@ -232,10 +320,16 @@ Access Grafana at `http://YOUR_IP:3000`:
 - Import dashboard ID 1860 for Node Exporter metrics
 
 
+
+
 ## 💾 Backup & Restore
 
 
+
+
 ### Manual Backup
+
+
 
 
 ```bash
@@ -243,18 +337,28 @@ Access Grafana at `http://YOUR_IP:3000`:
 ```
 
 
+
+
 Backups are stored in `/backup/` and keep the last 7 backups automatically.
+
+
 
 
 ### Automated Daily Backup
 
 
+
+
 Add to crontab:
+
+
 
 
 ```bash
 crontab -e
 ```
+
+
 
 
 Add line:
@@ -263,7 +367,11 @@ Add line:
 ```
 
 
+
+
 ### Restore from Backup
+
+
 
 
 ```bash
@@ -273,10 +381,16 @@ tar -xzf home-media-backup-YYYYMMDD_HHMMSS.tar.gz
 ```
 
 
+
+
 ## 🏠 Home Assistant Setup
 
 
+
+
 ### Initial Setup
+
+
 
 
 1. Access Home Assistant at `http://YOUR_IP:8123`
@@ -285,7 +399,11 @@ tar -xzf home-media-backup-YYYYMMDD_HHMMSS.tar.gz
 4. Add MQTT integration (broker: `192.168.1.100`, port: `1883`)
 
 
+
+
 ### Installing Automations
+
+
 
 
 1. Copy automation files from `automations/` folder
@@ -294,10 +412,16 @@ tar -xzf home-media-backup-YYYYMMDD_HHMMSS.tar.gz
 4. Restart Home Assistant or reload automations
 
 
+
+
 ## 🔴 Node-RED Setup
 
 
+
+
 ### Initial Setup
+
+
 
 
 1. Access Node-RED at `http://YOUR_IP:1880`
@@ -305,7 +429,11 @@ tar -xzf home-media-backup-YYYYMMDD_HHMMSS.tar.gz
 3. Install Home Assistant nodes via Palette Manager
 
 
+
+
 ### Importing Flows
+
+
 
 
 1. Copy content from `automations/nodered-*.json`
@@ -314,7 +442,11 @@ tar -xzf home-media-backup-YYYYMMDD_HHMMSS.tar.gz
 4. Deploy
 
 
+
+
 ## 🔒 Security Best Practices
+
+
 
 
 - [ ] Change all default passwords
@@ -326,7 +458,11 @@ tar -xzf home-media-backup-YYYYMMDD_HHMMSS.tar.gz
 - [ ] Use separate VLAN for IoT devices
 
 
+
+
 ## 📖 Documentation
+
+
 
 
 - **[IMPLEMENTATION-GUIDE.md](IMPLEMENTATION-GUIDE.md)** - Detailed step-by-step implementation
@@ -334,10 +470,16 @@ tar -xzf home-media-backup-YYYYMMDD_HHMMSS.tar.gz
 - **[README.md](README.md)** - Project overview and specifications
 
 
+
+
 ## 🔄 Updates
 
 
+
+
 ### Update Docker Images
+
+
 
 
 ```bash
@@ -348,7 +490,11 @@ docker image prune -a
 ```
 
 
+
+
 ### Update System
+
+
 
 
 ```bash
@@ -356,10 +502,16 @@ sudo apt update && sudo apt upgrade -y
 ```
 
 
+
+
 ## 🐛 Troubleshooting
 
 
+
+
 ### Services Won't Start
+
+
 
 
 ```bash
@@ -367,9 +519,13 @@ sudo apt update && sudo apt upgrade -y
 sudo systemctl status docker
 
 
+
+
 # View service logs
 cd /opt/docker
 docker compose logs SERVICE_NAME
+
+
 
 
 # Restart service
@@ -377,12 +533,18 @@ docker compose restart SERVICE_NAME
 ```
 
 
+
+
 ### Network Issues
+
+
 
 
 ```bash
 # Check firewall
 sudo ufw status
+
+
 
 
 # Test connectivity
@@ -391,7 +553,11 @@ curl http://YOUR_SERVER_IP:8123
 ```
 
 
+
+
 ### Performance Issues
+
+
 
 
 ```bash
@@ -399,8 +565,12 @@ curl http://YOUR_SERVER_IP:8123
 ./scripts/monitor.sh
 
 
+
+
 # View Docker stats
 docker stats
+
+
 
 
 # Check disk space
@@ -408,10 +578,16 @@ df -h
 ```
 
 
+
+
 ## 🤝 Contributing
 
 
+
+
 This is a personal project, but improvements are welcome:
+
+
 
 
 1. Fork the repository
@@ -420,13 +596,21 @@ This is a personal project, but improvements are welcome:
 4. Submit a pull request
 
 
+
+
 ## 📄 License
+
+
 
 
 MIT License - see [LICENSE](LICENSE) file for details
 
 
+
+
 ## 🆘 Support
+
+
 
 
 For issues or questions:
@@ -435,7 +619,11 @@ For issues or questions:
 - Open an issue on GitHub
 
 
+
+
 ## 📝 Changelog
+
+
 
 
 ### November 2025
@@ -446,7 +634,11 @@ For issues or questions:
 - Documentation completed
 
 
+
+
 ---
+
+
 
 
 **Last Updated:** November 08, 2025  

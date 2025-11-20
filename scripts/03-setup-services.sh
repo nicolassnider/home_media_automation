@@ -1,6 +1,8 @@
 #!/bin/bash
 
 
+
+
 # ================================================
 # Home Media and Automation Center
 # Services Setup Script
@@ -9,7 +11,11 @@
 # Run as: ./03-setup-services.sh (no sudo needed)
 
 
+
+
 set -e  # Exit on error
+
+
 
 
 # Colors for output
@@ -20,10 +26,14 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 
+
+
 # Functions
 print_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
+
+
 
 
 print_warn() {
@@ -31,14 +41,20 @@ print_warn() {
 }
 
 
+
+
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
 
+
+
 print_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
+
+
 
 
 # Get script directory
@@ -48,10 +64,14 @@ DOCKER_DIR="$PROJECT_DIR/docker"
 CONFIG_DIR="$PROJECT_DIR/configs"
 
 
+
+
 # Main Script
 print_info "============================================"
 print_info "Services Setup"
 print_info "============================================"
+
+
 
 
 # Check if Docker is installed
@@ -61,6 +81,8 @@ if ! command -v docker &> /dev/null; then
 fi
 
 
+
+
 # Check if user is in docker group
 if ! groups | grep -q docker; then
     print_error "User is not in docker group. Log out and back in, or run: newgrp docker"
@@ -68,9 +90,13 @@ if ! groups | grep -q docker; then
 fi
 
 
+
+
 # Create directory structure in /opt/docker
 print_step "Creating directory structure..."
 sudo mkdir -p /opt/docker/{mosquitto/{config,data,log},plex/{config,transcode},homeassistant/config,nodered/data,nginx/{conf,ssl,logs},portainer/data,prometheus/config,grafana/provisioning}
+
+
 
 
 # Copy docker-compose.yml
@@ -78,11 +104,15 @@ print_step "Copying Docker Compose configuration..."
 sudo cp "$DOCKER_DIR/docker-compose.yml" /opt/docker/
 
 
+
+
 # Copy configuration files
 print_step "Copying configuration files..."
 sudo cp "$CONFIG_DIR/mosquitto.conf" /opt/docker/mosquitto/config/
 sudo cp "$CONFIG_DIR/nginx-default.conf" /opt/docker/nginx/conf/default.conf
 sudo cp "$CONFIG_DIR/prometheus.yml" /opt/docker/prometheus/config/
+
+
 
 
 # Copy environment file
@@ -97,9 +127,13 @@ if [ -f "$DOCKER_DIR/.env.example" ]; then
 fi
 
 
+
+
 # Set permissions
 print_step "Setting permissions..."
 sudo chown -R $USER:$USER /opt/docker
+
+
 
 
 # Create MQTT password file
@@ -110,6 +144,8 @@ read -s -p "Enter MQTT password: " MQTT_PASS
 echo
 
 
+
+
 # Start mosquitto temporarily to create password
 cd /opt/docker
 docker compose up -d mosquitto
@@ -118,7 +154,11 @@ docker exec mosquitto mosquitto_passwd -c -b /mosquitto/config/passwd "$MQTT_USE
 docker compose restart mosquitto
 
 
+
+
 print_info "MQTT credentials created"
+
+
 
 
 # Configure firewall
@@ -134,7 +174,11 @@ sudo ufw allow 9000/tcp comment 'Portainer'
 sudo ufw allow 3000/tcp comment 'Grafana'
 
 
+
+
 print_info "Firewall rules updated"
+
+
 
 
 # Start all services
@@ -143,13 +187,19 @@ cd /opt/docker
 docker compose up -d
 
 
+
+
 print_info "Waiting for services to start..."
 sleep 10
+
+
 
 
 # Show status
 print_step "Service Status:"
 docker compose ps
+
+
 
 
 print_info "============================================"
@@ -160,7 +210,7 @@ print_info "Access your services:"
 print_info "  Plex:           http://$(hostname -I | awk '{print $1}'):32400/web"
 print_info "  Home Assistant: http://$(hostname -I | awk '{print $1}'):8123"
 print_info "  Node-RED:       http://$(hostname -I | awk '{print $1}'):1880"
-print_info "  Portainer:      http://$(hostname -I | awk '{print $1}'):9000"
+print_info "  Portainer:      http://$(hostname -I | awk '{print $1}'):9010"
 print_info "  Grafana:        http://$(hostname -I | awk '{print $1}'):3000"
 print_info ""
 print_warn "IMPORTANT: Complete the setup for each service through their web interfaces"

@@ -1,8 +1,12 @@
 version: '3.8'
 
 
+
+
 # Home Media and Automation Center - Main Docker Compose
 # This file orchestrates all services for the home server
+
+
 
 
 services:
@@ -22,6 +26,8 @@ services:
       - ./mosquitto/log:/mosquitto/log
     networks:
       - home-network
+
+
 
 
   # ================================
@@ -48,6 +54,8 @@ services:
       - /media/photos:/photos
 
 
+
+
   # ================================
   # Home Assistant - Home Automation Platform
   # ================================
@@ -65,6 +73,8 @@ services:
       - /run/dbus:/run/dbus:ro
     depends_on:
       - mosquitto
+
+
 
 
   # ================================
@@ -85,6 +95,8 @@ services:
     depends_on:
       - mosquitto
       - homeassistant
+
+
 
 
   # ================================
@@ -109,6 +121,8 @@ services:
       - nodered
 
 
+
+
   # ================================
   # Portainer - Container Management UI
   # ================================
@@ -117,13 +131,25 @@ services:
     container_name: portainer
     restart: unless-stopped
     ports:
-      - "9000:9000"
+      - "9010:9000"
       - "9443:9443"
     volumes:
       - ./portainer/data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
+      # The Docker socket mount below is disabled on Windows Docker Desktop by default
+      # when enhanced container isolation / socket allow-listing blocks it. If you
+      # want Portainer to manage the local Docker Engine, either:
+      #  - Add the image name (portainer/portainer-ce:latest) to the Docker Desktop
+      #    Docker socket allowed list in the Docker Desktop admin settings, OR
+      #  - Use the Portainer agent model (run the agent daemon on the host/WSL) and
+      #    connect the server to the agent, OR
+      #  - Run Docker on a Linux host/WSL instance where the socket mount is allowed.
+      # For now the socket mount is commented out so the rest of the stack can start
+      # on Windows without the allow-list error.
+      # - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - home-network
+
+
 
 
   # ================================
@@ -145,6 +171,8 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
     networks:
       - home-network
+
+
 
 
   # ================================
@@ -169,6 +197,8 @@ services:
       - prometheus
 
 
+
+
   # ================================
   # Node Exporter - System Metrics
   # ================================
@@ -190,12 +220,16 @@ services:
       - home-network
 
 
+
+
 # ================================
 # Networks
 # ================================
 networks:
   home-network:
     driver: bridge
+
+
 
 
 # ================================

@@ -1,0 +1,214 @@
+# Home Media Automation - Generated Files and Runtime Data
+
+
+# ================================
+# Environment & Secrets
+# ================================
+.env
+*.env.local
+*.env.production
+**/secrets/
+**/*_secrets.yaml
+**/*_secrets.yml
+
+
+# ================================
+# Docker Runtime Data
+# ================================
+# All service data directories
+docker/*/data/
+docker/*/config/
+docker/*/log/
+docker/*/logs/
+
+
+# Specific service data
+docker/portainer/data/
+docker/mosquitto/data/
+docker/mosquitto/log/
+docker/nginx/logs/
+docker/prometheus/config/
+docker/nodered/data/
+docker/grafana/provisioning/datasources/*.yaml
+docker/homeassistant/config/
+docker/plex/config/
+docker/plex/transcode/
+
+
+# Root-level service data directories
+portainer/data/
+mosquitto/data/
+mosquitto/log/
+nginx/logs/
+prometheus/config/
+nodered/data/
+grafana/
+homeassistant/config/
+plex/config/
+plex/transcode/
+
+
+# ================================
+# Media Files (Large Binary Files)
+# ================================
+media/movies/**
+media/tv/**
+media/music/**
+media/photos/**
+docker/media/**
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.flac
+*.mp3
+*.m4a
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.raw
+*.cr2
+*.nef
+
+
+# Keep media directory structure but ignore content
+!media/movies/.gitkeep
+!media/tv/.gitkeep
+!media/music/.gitkeep
+!media/photos/.gitkeep
+
+
+# ================================
+# Logs and Temporary Files
+# ================================
+*.log
+*.log.*
+logs/
+*.tmp
+*.temp
+*.cache
+*.pid
+*.sock
+*.swp
+*~
+
+
+# ================================
+# SSL Certificates and Keys
+# ================================
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+docker/nginx/ssl/**
+nginx/ssl/**
+!docker/nginx/ssl/.gitkeep
+
+
+# ================================
+# Database Files
+# ================================
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+home-assistant_v2.db*
+
+
+# ================================
+# Plex Specific
+# ================================
+**/Plex Media Server/Cache/**
+**/Plex Media Server/Logs/**
+**/Plex Media Server/Crash Reports/**
+**/Plex Media Server/Diagnostics/**
+**/Plex Media Server/Plug-in Support/Caches/**
+**/Plex Media Server/Plug-in Support/Databases/**
+**/Plex Media Server/Codecs/**
+**/Plex Media Server/Updates/**
+**/Transcode/**
+
+
+# ================================
+# Home Assistant Specific
+# ================================
+**/.storage/
+**/.cloud/
+**/deps/
+**/tts/
+home-assistant.log*
+*.db-journal
+
+
+# ================================
+# Node-RED Specific
+# ================================
+**/node_modules/
+**/.npm/
+**/.config.nodes.json.backup
+**/flows_cred.json
+**/package-lock.json
+
+
+# ================================
+# Prometheus & Grafana
+# ================================
+**/prometheus/data/**
+**/grafana/data/**
+*.json.bak
+
+
+# ================================
+# OS Specific
+# ================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+
+# Linux
+.directory
+.Trash-*
+
+
+# ================================
+# IDE & Editor
+# ================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.editorconfig
+
+
+# ================================
+# Backup Files
+# ================================
+*.backup
+*.bak
+*.old
+backup/
+backups/
+*.zip
+*.tar.gz
+*.tar
+
+
+# ================================
+# Docker Compose Override
+# ================================
+docker-compose.override.yml
